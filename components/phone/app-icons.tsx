@@ -1,5 +1,6 @@
 import { MessageCircle, Music, Phone } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { CalendarIconDate } from './calendar-icon-date'
 
 export type AppId =
   | 'phone'
@@ -115,8 +116,7 @@ export function AppIcon({ id, className }: { id: AppId; className?: string }) {
     case 'calendar':
       return (
         <div className={cn(base, 'flex-col bg-white leading-none')}>
-          <span className="text-[15cqw] font-semibold text-[#fa233b]">수요일</span>
-          <span className="text-[50cqw] font-light tracking-tight text-black">21</span>
+          <CalendarIconDate />
         </div>
       )
     case 'google':

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Plus, Search, Star, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useToday } from '../calendar-icon-date'
 
 type CalEvent = {
   id: string
@@ -53,6 +54,12 @@ function formatRange(e: CalEvent) {
 export function CalendarApp() {
   const [starred, setStarred] = useState<Set<string>>(new Set())
   const [selected, setSelected] = useState<CalEvent | null>(null)
+  const today = useToday()
+  const isThisYear = today?.getFullYear() === YEAR
+  const todayMonth = isThisYear ? today.getMonth() + 1 : null
+  const todayDate = isThisYear ? today.getDate() : null
+  const lastMonth = Math.max(10, todayMonth ?? 10)
+  const months = Array.from({ length: lastMonth - 8 }, (_, i) => 9 + i)
 
   const openEvent = (e: CalEvent) => {
     if (e.kind === 'holiday') setStarred((prev) => new Set(prev).add(e.id))
@@ -81,7 +88,7 @@ export function CalendarApp() {
       </div>
 
       <div className="flex-1 overflow-y-auto pb-4">
-        {[9, 10].map((month) => (
+        {months.map((month) => (
           <section key={month} aria-label={`${YEAR}년 ${month}월`}>
             <h2 className="px-4 pt-4 pb-1 text-[26px] font-bold text-black">{month}월</h2>
             {buildWeeks(month).map((week, wi) => (
@@ -96,7 +103,7 @@ export function CalendarApp() {
                         className={cn(
                           'mx-auto flex size-7 items-center justify-center text-[16px]',
                           isHoliday ? 'text-[#ff3b30]' : 'text-black',
-                          month === 10 && day === 21 && 'rounded-full bg-[#ff3b30] font-semibold text-white',
+                          month === todayMonth && day === todayDate && 'rounded-full bg-[#ff3b30] font-semibold text-white',
                         )}
                       >
                         {day}

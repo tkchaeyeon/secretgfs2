@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import Image from 'next/image'
 import {
   Bell,
@@ -283,12 +283,91 @@ function Explore() {
   )
 }
 
+const DM_DELAY_MS = 3000
+const DM_BANNER_MS = 4500
+const DM_TEXT = '님 맞죠?'
+
+function Messages() {
+  return (
+    <>
+      <header className="sticky top-0 z-10 flex h-12 items-center gap-3 border-b border-[#eff3f4] bg-white/85 px-4 backdrop-blur">
+        <Avatar kind="default" />
+        <h2 className="flex-1 text-[17px] font-bold text-[#0f1419]">메시지</h2>
+        <Settings className="size-5 text-[#0f1419]" />
+      </header>
+      <div className="px-4 py-2">
+        <div className="flex h-10 items-center gap-2 rounded-full bg-[#eff3f4] px-4 text-[15px] text-[#536471]">
+          <Search className="size-4" />
+          다이렉트 메시지 검색
+        </div>
+      </div>
+      <div className="flex items-center gap-3 px-4 py-3" aria-label=". 님의 메시지: 님 맞죠?">
+        <span className="size-12 shrink-0 rounded-full bg-black" />
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-1 text-[15px]">
+            <span className="font-bold text-[#0f1419]">.</span>
+            <span className="truncate text-[#536471]">@_______</span>
+            <span className="text-[#536471]">·</span>
+            <span className="shrink-0 text-[#536471]">지금</span>
+          </div>
+          <p className="truncate text-[15px] font-bold text-[#0f1419]">{DM_TEXT}</p>
+        </div>
+        <span className="size-2.5 shrink-0 rounded-full bg-[#1d9bf0]" aria-label="읽지 않음" />
+      </div>
+    </>
+  )
+}
+
+function DmBanner() {
+  return (
+    <div
+      role="status"
+      className="pointer-events-none absolute inset-x-2 top-2 z-30 flex items-center gap-3 rounded-[22px] bg-white/90 px-3 py-2.5 shadow-lg ring-1 ring-black/5 backdrop-blur-xl animate-in slide-in-from-top-4 fade-in duration-300"
+    >
+      <span className="flex size-9 shrink-0 items-center justify-center rounded-[9px] bg-black">
+        <XLogo className="size-5 text-white" />
+      </span>
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center justify-between">
+          <p className="text-[15px] font-semibold text-black">X</p>
+          <p className="text-[13px] text-black/50">지금</p>
+        </div>
+        <p className="truncate text-[15px] text-black">
+          <span className="font-semibold">.</span> : {DM_TEXT}
+        </p>
+      </div>
+    </div>
+  )
+}
+
 export function XApp() {
-  const [view, setView] = useState<'home' | 'search'>('home')
+  const [view, setView] = useState<'home' | 'search' | 'messages'>('home')
+  const [showBanner, setShowBanner] = useState(false)
+  const [hasUnreadDm, setHasUnreadDm] = useState(false)
+
+  useEffect(() => {
+    const showId = setTimeout(() => {
+      setShowBanner(true)
+      setHasUnreadDm(true)
+    }, DM_DELAY_MS)
+    const hideId = setTimeout(() => setShowBanner(false), DM_DELAY_MS + DM_BANNER_MS)
+    return () => {
+      clearTimeout(showId)
+      clearTimeout(hideId)
+    }
+  }, [])
+
+  const openMessages = () => {
+    setView('messages')
+    setHasUnreadDm(false)
+  }
 
   return (
-    <div className="flex h-full flex-col bg-white">
-      <div className="flex-1 overflow-y-auto">{view === 'home' ? <Feed /> : <Explore />}</div>
+    <div className="relative flex h-full flex-col bg-white">
+      {showBanner && <DmBanner />}
+      <div className="flex-1 overflow-y-auto">
+        {view === 'home' ? <Feed /> : view === 'search' ? <Explore /> : <Messages />}
+      </div>
       <nav aria-label="X 메뉴" className="flex h-12 shrink-0 items-center justify-around border-t border-[#eff3f4] bg-white">
         <button
           type="button"
@@ -311,9 +390,18 @@ export function XApp() {
         <span className="flex size-11 items-center justify-center text-[#0f1419]">
           <Bell className="size-6" />
         </span>
-        <span className="flex size-11 items-center justify-center text-[#0f1419]">
-          <Mail className="size-6" />
-        </span>
+        <button
+          type="button"
+          onClick={openMessages}
+          aria-label={hasUnreadDm ? '메시지, 새 메시지 있음' : '메시지'}
+          aria-current={view === 'messages' ? 'page' : undefined}
+          className="relative flex size-11 items-center justify-center text-[#0f1419]"
+        >
+          <Mail className="size-6" strokeWidth={view === 'messages' ? 2.75 : 2} />
+          {hasUnreadDm && (
+            <span className="absolute top-2 right-1.5 size-2.5 rounded-full bg-[#1d9bf0] ring-2 ring-white" />
+          )}
+        </button>
       </nav>
     </div>
   )
